@@ -1,0 +1,46 @@
+{
+  "name": "pruevit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pruevit.com - Secure Case Value Insight Platform powered by Grok AI",
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:seed": "tsx prisma/seed.ts",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "next": "15.2.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "next-auth": "^4.24.11",
+    "@auth/prisma-adapter": "^2.7.4",
+    "@prisma/client": "^6.5.0",
+    "bcryptjs": "^2.4.3",
+    "zod": "^3.24.2",
+    "lucide-react": "^0.484.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.0.2",
+    "date-fns": "^4.1.0",
+    "uuid": "^11.1.0",
+    "openai": "^4.89.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5",
+    "eslint": "^9",
+    "eslint-config-next": "15.2.4",
+    "tailwindcss": "^4",
+    "@tailwindcss/postcss": "^4",
+    "prisma": "^6.5.0",
+    "tsx": "^4.19.3"
+  }
+}

@@ -1,0 +1,135 @@
+// Pruevit.com - Prisma Schema
+// Production-ready structure with roles, cases, encrypted files, retention
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  INSURANCE
+  ATTORNEY
+  CLAIMANT
+}
+
+enum CaseStatus {
+  DRAFT
+  UPLOADED
+  ANALYZING
+  COMPLETED
+  ARCHIVED
+  DELETED
+}
+
+enum FileCategory {
+  MEDICAL_RECORDS
+  POLICE_REPORT
+  PHOTOS
+  DEMAND_LETTER
+  ECONOMIC_LOSS
+  EXPERT_REPORT
+  OTHER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  image         String?
+  role          Role      @default(CLAIMANT)
+  organization  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  cases         Case[]    @relation("CaseOwner")
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Case {
+  id              String     @id @default(cuid())
+  title           String
+  description     String?
+  status          CaseStatus @default(DRAFT)
+  ownerId         String
+  owner           User       @relation("CaseOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  // Case details (non-sensitive summary)
+  claimType       String?    // e.g. auto, premises, medical malpractice
+  jurisdiction    String?
+  injurySeverity  String?
+  // AI analysis results (stored encrypted or as JSON)
+  analysisResult  String?    // JSON string of Grok analysis
+  valueLow        Float?
+  valueHigh       Float?
+  valueCurrency   String     @default("USD")
+  confidenceNote  String?
+  // Retention
+  expiresAt       DateTime
+  deletedAt       DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  files           CaseFile[]
+
+  @@index([ownerId])
+  @@index([expiresAt])
+  @@index([status])
+}
+
+model CaseFile {
+  id            String       @id @default(cuid())
+  caseId        String
+  case          Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  category      FileCategory
+  originalName  String
+  storedName    String       // encrypted filename on disk
+  mimeType      String
+  sizeBytes     Int
+  // Encryption metadata
+  encrypted     Boolean      @default(true)
+  encryptionIv  String?      // base64 IV
+  uploadedAt    DateTime     @default(now())
+  // Soft delete / retention
+  deletedAt     DateTime?
+
+  @@index([caseId])
+}
